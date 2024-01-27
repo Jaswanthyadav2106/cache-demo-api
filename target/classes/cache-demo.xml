@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f93dc469-a04c-4888-98d6-6983a0fc79fe" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="a049e967-345d-4b77-8075-ecb153ac5ba7" >
+		<http:request-connection protocol="HTTPS" host="reqres.in" />
+	</http:request-config>
+	<ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy" doc:id="86737981-8940-4af6-8652-3d4365c69d26" keyGenerationExpression="#[attributes.uriParams.id]" />
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="9a392933-9b51-411e-b585-c92b3e9e6733" >
+		<http:request-connection host="reqres.in" />
+	</http:request-config>
+	<flow name="cache-demoFlow" doc:id="490acee3-f186-4345-9cbd-d1767a787664" >
+		<http:listener doc:name="Listener" doc:id="9aa34ab6-9d97-43b6-8ba0-41615a578cbd" config-ref="HTTP_Listener_config" path="/cache-demo/{id}"/>
+		<logger level="INFO" doc:name="START" doc:id="d1edcb68-2aab-46c3-bef9-ae2d86025008" message="START"/>
+		<ee:cache doc:name="Cache" doc:id="ad2ff216-4143-4ec9-9e16-bb3c9fd6bb57" cachingStrategy-ref="Caching_Strategy">
+			<logger level="INFO" doc:name="Logger" doc:id="e9f8e516-699a-40bc-ae82-a34a75f5faaa" message="Cache-start"/>
+			<until-successful maxRetries="3" doc:name="Until Successful" doc:id="01ddffa7-8cff-40f2-a88b-c756f7cbfe5c" millisBetweenRetries="6000">
+				<http:request method="GET" doc:name="Request" doc:id="990a108d-a075-4bf5-9633-ea3be4436a14" config-ref="HTTP_Request_configuration1" path="/api/users/{userId}">
+						<http:uri-params><![CDATA[#[{
+	"userId" : attributes.uriParams.id
+}]]]></http:uri-params>
+					</http:request>
+			</until-successful>
+			<ee:transform doc:name="Transform Message" doc:id="757454c3-d4cd-43db-893b-0867d8c9e6dc">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload.data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="867fc07b-4896-4a7e-9b7e-295b0ad94cf3" message="Cache-end"/>
+		</ee:cache>
+		<logger level="INFO" doc:name="END" doc:id="8d159b4e-c062-4cc3-856c-068b1919ecf5" message="END"/>
+	</flow>
+</mule>
