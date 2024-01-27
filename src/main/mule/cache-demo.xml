@@ -37,6 +37,14 @@ payload.data]]></ee:set-payload>
 		</ee:transform>
 			<logger level="INFO" doc:name="Logger" doc:id="867fc07b-4896-4a7e-9b7e-295b0ad94cf3" message="Cache-end"/>
 		</ee:cache>
+		<ee:transform doc:name="print payload" doc:id="746ad9e8-88b4-4a42-b085-02109ab1b6cd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<logger level="INFO" doc:name="END" doc:id="8d159b4e-c062-4cc3-856c-068b1919ecf5" message="END"/>
 	</flow>
 </mule>
